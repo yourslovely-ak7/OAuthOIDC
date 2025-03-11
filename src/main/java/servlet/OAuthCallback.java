@@ -16,6 +16,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import exception.InvalidException;
 import helper.Helper;
 
 @SuppressWarnings("serial")
@@ -27,7 +28,17 @@ public class OAuthCallback extends HttpServlet
 		String authCode= req.getParameter("code");
 //		String location= req.getParameter("location");
 		String server= req.getParameter("accounts-server");
-		String clientSecret= Helper.getClientSecret();
+		String clientSecret="";
+		try
+		{
+			clientSecret= Helper.getClientSecret();
+			Helper.checkForNull(clientSecret);
+		}
+		catch(InvalidException error)
+		{
+			error.printStackTrace();
+			resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+		}
 		
 		StringBuilder tokenApi= new StringBuilder(server);
 		tokenApi.append("/oauth/v2/token?")

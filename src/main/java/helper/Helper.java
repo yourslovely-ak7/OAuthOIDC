@@ -6,6 +6,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import database.DatabaseConnection;
+import exception.InvalidException;
 
 public class Helper {
 	
@@ -17,29 +18,25 @@ public class Helper {
 		return clientId;
 	}
 	
-	public static String getClientSecret()
-	{
-		String query="Select client_secret from ClientDetails where authType=?";
-		try(Connection connection= DatabaseConnection.getConnection();
-				PreparedStatement statement= connection.prepareStatement(query))
+	public static String getClientSecret() throws InvalidException {
+		String query = "Select client_secret from ClientDetails where authType=?";
+		try (Connection connection = DatabaseConnection.getConnection();
+				PreparedStatement statement = connection.prepareStatement(query)) 
 		{
 			statement.setString(1, "Zoho");
 			System.out.println(statement);
-			ResultSet result= statement.executeQuery();
-			
-			String clientSecret=null;
-			while(result.next())
-			{
-				clientSecret= result.getString(1);
+			ResultSet result = statement.executeQuery();
+
+			String clientSecret = null;
+			while (result.next()) {
+				clientSecret = result.getString(1);
 			}
-			
+
 			return clientSecret;
-		} 
-		catch (SQLException error) 
-		{
-			error.printStackTrace();
+		} catch (SQLException error) {
+			System.out.println("SQL Exception: " + error.getMessage());
+			throw new InvalidException("Error occurred while fetching from DB.", error);
 		}
-		return null;
 	}
 	
 	public static String getRedirectURI()
@@ -47,4 +44,11 @@ public class Helper {
 		return redirectURI;
 	}
 
+	public static void checkForNull(Object obj) throws InvalidException
+	{
+		if(obj==null)
+		{
+			throw new InvalidException("Value cannot be Null!");
+		}
+	}
 }
