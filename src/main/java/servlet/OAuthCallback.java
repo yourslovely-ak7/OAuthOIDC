@@ -27,11 +27,12 @@ public class OAuthCallback extends HttpServlet
 		String authCode= req.getParameter("code");
 //		String location= req.getParameter("location");
 		String server= req.getParameter("accounts-server");
+		String clientSecret= Helper.getClientSecret();
 		
 		StringBuilder tokenApi= new StringBuilder(server);
 		tokenApi.append("/oauth/v2/token?")
 		.append("client_id=").append(Helper.getClientId())
-		.append("&client_secret=").append(Helper.getClientSecret())
+		.append("&client_secret=").append(clientSecret)
 		.append("&grant_type=authorization_code")
 		.append("&redirect_uri=").append(Helper.getRedirectURI())
 		.append("&code="+authCode);
