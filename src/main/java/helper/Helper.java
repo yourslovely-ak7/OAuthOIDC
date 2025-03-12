@@ -33,7 +33,7 @@ public class Helper {
 			}
 
 			return clientSecret;
-		} catch (SQLException error) {
+		} catch (SQLException | ClassNotFoundException error) {
 			System.out.println("SQL Exception: " + error.getMessage());
 			throw new InvalidException("Error occurred while fetching from DB.", error);
 		}

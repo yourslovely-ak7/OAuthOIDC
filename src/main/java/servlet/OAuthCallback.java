@@ -3,7 +3,6 @@ package servlet;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.PrintWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Base64;
@@ -63,10 +62,23 @@ public class OAuthCallback extends HttpServlet
 				response.append(line);
 			}
 		}
+		System.out.println("Response: "+response);
 		
 		try
 		{
 			JSONObject json= new JSONObject(response.toString());
+			
+			try
+			{
+				String error= json.getString("error");
+				System.out.println("Error code received: "+error);
+				resp.sendRedirect("login.html");
+				return;
+			}
+			catch(JSONException error)
+			{
+				System.out.println("Authorized successfully! Proceeding with data retrieval...");
+			}
 			
 			String accessToken= json.getString("access_token");
 			String refreshToken= json.getString("refresh_token");
@@ -84,20 +96,13 @@ public class OAuthCallback extends HttpServlet
 			
 			JSONObject jsonResp= new JSONObject(payload);
 			
-	        resp.setContentType("text/html");
-	        PrintWriter out = resp.getWriter();
-	        
-	        out.println("<!DOCTYPE html>");
-	        out.println("<html>");
-	        out.println("<head><title>OAuth Response</title></head>");
-	        out.println("<body>");
-	        out.println("<h1>Welcome, " + jsonResp.getString("name") + "!</h1>");
-	        out.println("<p>First Name: <strong>" + jsonResp.getString("first_name") + "</strong></p>");
-	        out.println("<p>Last Name: <strong>" + jsonResp.getString("last_name") + "</strong></p>");
-	        out.println("<p>Email ID: <strong>" + jsonResp.getString("email") + "</strong></p>");
-	        out.println("<p>Gender: <strong>" + jsonResp.getString("gender") + "</strong></p>");
-	        out.println("</body>");
-	        out.println("</html>");
+			req.setAttribute("email", jsonResp.getString("email"));
+			req.setAttribute("name", jsonResp.getString("name"));
+			req.setAttribute("first_name", jsonResp.getString("first_name"));
+			req.setAttribute("last_name", jsonResp.getString("last_name"));
+			req.setAttribute("gender", jsonResp.getString("gender"));
+			
+			req.getRequestDispatcher("dashboard.jsp").forward(req, resp);
 		}
 		catch(JSONException error)
 		{

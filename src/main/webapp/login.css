@@ -15,7 +15,7 @@ body {
 } 
 
 .container {
-    background: #002349;
+    background: #00492187;
     opacity: 0.8;
     border-radius: 40vw 0 0 40vw; /* Adjust border-radius with viewport-relative units */
     width: 50vw; /* Half of the viewport width */
