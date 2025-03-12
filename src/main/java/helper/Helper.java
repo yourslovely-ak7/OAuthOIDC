@@ -5,8 +5,13 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import database.DatabaseConnection;
 import exception.InvalidException;
+import pojo.User;
+import pojo.UserSession;
 
 public class Helper {
 	
@@ -25,14 +30,14 @@ public class Helper {
 		{
 			statement.setString(1, "Zoho");
 			System.out.println(statement);
-			ResultSet result = statement.executeQuery();
-
-			String clientSecret = null;
-			while (result.next()) {
-				clientSecret = result.getString(1);
+			try(ResultSet result = statement.executeQuery())
+			{
+				String clientSecret = null;
+				while (result.next()) {
+					clientSecret = result.getString(1);
+				}
+				return clientSecret;				
 			}
-
-			return clientSecret;
 		} catch (SQLException | ClassNotFoundException error) {
 			System.out.println("SQL Exception: " + error.getMessage());
 			throw new InvalidException("Error occurred while fetching from DB.", error);
@@ -50,5 +55,28 @@ public class Helper {
 		{
 			throw new InvalidException("Value cannot be Null!");
 		}
+	}
+	
+	public static User buildUserFromJson(JSONObject data) throws JSONException
+	{
+		User user= new User();
+		
+		user.setName(data.getString("name"));
+		user.setFirstName(data.getString("first_name"));
+		user.setLastName(data.getString("last_name"));
+		user.setEmail(data.getString("email"));
+		user.setGender(data.getString("gender"));
+		
+		return user;
+	}
+	
+	public static UserSession buildUserSession(String accessToken, String refreshToken, int userId)
+	{
+		UserSession uSession= new UserSession();
+		uSession.setAccessToken(accessToken);
+		uSession.setRefreshToken(refreshToken);
+		uSession.setUserId(userId);
+		
+		return uSession;
 	}
 }

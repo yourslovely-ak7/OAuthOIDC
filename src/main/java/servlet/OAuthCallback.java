@@ -8,6 +8,7 @@ import java.net.URL;
 import java.util.Base64;
 
 import javax.servlet.ServletException;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -15,8 +16,11 @@ import javax.servlet.http.HttpServletResponse;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import crud.UserOperation;
 import exception.InvalidException;
 import helper.Helper;
+import pojo.User;
+import pojo.UserSession;
 
 @SuppressWarnings("serial")
 public class OAuthCallback extends HttpServlet
@@ -83,12 +87,12 @@ public class OAuthCallback extends HttpServlet
 			String accessToken= json.getString("access_token");
 			String refreshToken= json.getString("refresh_token");
 			String idToken= json.getString("id_token");
-			String apiDomain= json.getString("api_domain");
+//			String apiDomain= json.getString("api_domain");
 			
 			System.out.println("Access Token: "+ accessToken);
 			System.out.println("Refresh Token: "+ refreshToken);
 			System.out.println("ID Token: "+ idToken);
-			System.out.println("Domain: "+ apiDomain);
+//			System.out.println("Domain: "+ apiDomain);
 			
 			String parts[]= idToken.split("\\.");
 			String payload=  new String(Base64.getUrlDecoder().decode(parts[1]));
@@ -96,15 +100,35 @@ public class OAuthCallback extends HttpServlet
 			
 			JSONObject jsonResp= new JSONObject(payload);
 			
-			req.setAttribute("email", jsonResp.getString("email"));
-			req.setAttribute("name", jsonResp.getString("name"));
-			req.setAttribute("first_name", jsonResp.getString("first_name"));
-			req.setAttribute("last_name", jsonResp.getString("last_name"));
-			req.setAttribute("gender", jsonResp.getString("gender"));
+			User user= Helper.buildUserFromJson(jsonResp);
+			int userId= UserOperation.getUserId(user.getEmail());
 			
-			req.getRequestDispatcher("dashboard.jsp").forward(req, resp);
+			if(userId == 0)
+			{
+				userId= UserOperation.addUser(user);
+			}
+			
+			UserSession uSession= Helper.buildUserSession(accessToken, refreshToken, userId);
+			int sessionId= UserOperation.addUserSession(uSession);
+			
+			Cookie userCookie= new Cookie("userId", userId+"");
+			userCookie.setHttpOnly(true);
+			Cookie sessionCookie= new Cookie("sessionId", sessionId+"");
+			sessionCookie.setHttpOnly(true);
+			
+			resp.addCookie(userCookie);
+			resp.addCookie(sessionCookie);
+			resp.sendRedirect("dashboard.jsp");
+//			
+//			req.setAttribute("email", jsonResp.getString("email"));
+//			req.setAttribute("name", jsonResp.getString("name"));
+//			req.setAttribute("first_name", jsonResp.getString("first_name"));
+//			req.setAttribute("last_name", jsonResp.getString("last_name"));
+//			req.setAttribute("gender", jsonResp.getString("gender"));
+//			
+//			req.getRequestDispatcher("dashboard.jsp").forward(req, resp);
 		}
-		catch(JSONException error)
+		catch(JSONException | InvalidException error)
 		{
 			System.out.println("Exception occurred: "+error.getMessage());
 			resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);

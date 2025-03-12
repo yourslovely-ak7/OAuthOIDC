@@ -25,4 +25,13 @@
         <url-pattern>/oauthredirect</url-pattern>
     </servlet-mapping>
     
+	<servlet>
+        <servlet-name>UserDetails</servlet-name>
+        <servlet-class>servlet.UserDetails</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>UserDetails</servlet-name>
+        <url-pattern>/userdetails</url-pattern>
+    </servlet-mapping>
+    
 </web-app>
